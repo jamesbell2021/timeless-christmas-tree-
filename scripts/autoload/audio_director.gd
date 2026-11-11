@@ -39,6 +39,8 @@ var _gap := 0.0
 var _variation := 0
 var _ready_for_music := false
 var _fade := 1.0
+## When true, scene changes don't restart the music (used by the trailer).
+var music_locked := false
 
 
 func _ready() -> void:
@@ -129,6 +131,22 @@ func is_ready() -> bool:
 	return _ready_for_music
 
 
+func finish_jobs() -> void:
+	## Renders every pending instrument note and ambience loop right now.
+	while not _jobs.is_empty():
+		var job: Synth.SynthJob = _jobs[0][0]
+		while not job.step(200000):
+			pass
+		var cb: Callable = _jobs[0][1]
+		_jobs.pop_front()
+		cb.call(job.result)
+
+
+func start_music_now(kind: String) -> void:
+	play_music_for(kind)
+	_gap = 0.0
+
+
 # ====================================================================== SFX
 
 func sfx(sound: String, pitch: float = 1.0, vol_db: float = 0.0) -> void:
@@ -186,7 +204,7 @@ func _set_loop(p: AudioStreamPlayer, key: String, on: bool, db: float) -> void:
 # =================================================================== music
 
 func play_music_for(kind: String) -> void:
-	if kind == _music_kind:
+	if kind == _music_kind or music_locked:
 		return
 	_music_kind = kind
 	var order: Array

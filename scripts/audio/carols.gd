@@ -148,8 +148,9 @@ static func _accompany(events: Array, style: String, root: int, tones: Array, st
 	var bass := 36 + root
 	if bass > 45:
 		bass -= 12
-	var mid := 52 + root
-	if mid > 59:
+	# Root of the chord in the middle register (between F#2 and F3)
+	var mid := 48 + root
+	if root > 5:
 		mid -= 12
 	var inst := "piano" if variation == 0 else "harp"
 	var soft := 0.3 if variation == 0 else 0.26

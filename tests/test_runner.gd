@@ -168,6 +168,35 @@ func _test_carols() -> void:
 		check(bars.size() == chords.size(), "%s: one chord entry per bar (%d vs %d)" % [song["title"], bars.size(), chords.size()])
 		var ev := Carols.arrange(song, 0)
 		check(ev.size() > 20, "%s arranged" % song["title"])
+		# Every accompaniment note must belong to the chord sounding at that moment.
+		var wrong := 0
+		for e in ev:
+			if e["part"] == "melody":
+				continue
+			var ch := _chord_at(song, float(e["t"]))
+			var pcs: Array = []
+			for tn in ch[1]:
+				pcs.append(posmod(int(ch[0]) + int(tn), 12))
+			if not posmod(int(e["midi"]), 12) in pcs:
+				wrong += 1
+		check(wrong == 0, "%s: accompaniment fits the chords (%d stray notes)" % [song["title"], wrong])
+
+
+func _chord_at(song: Dictionary, beat: float) -> Array:
+	var chords := (song["chords"] as String).split("|")
+	var beats := float(song["beats"])
+	var pickup := float(song.get("pickup", 0.0))
+	var bar := 0
+	var start := 0.0
+	var length := pickup if pickup > 0.0 else beats
+	while bar < chords.size() - 1 and beat >= start + length - 0.0001:
+		start += length
+		bar += 1
+		length = beats
+	var parts := chords[bar].strip_edges().split(",")
+	var seg := length / parts.size()
+	var pi := clampi(int((beat - start) / seg), 0, parts.size() - 1)
+	return Carols.chord_tones(parts[pi].strip_edges())
 
 
 func _test_synth() -> void:
