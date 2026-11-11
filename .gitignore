@@ -1,0 +1,11 @@
+# Godot
+.godot/
+*.translation
+export_credentials.cfg
+*.tmp
+
+# Local builds (the web build in docs/ IS committed, for GitHub Pages)
+builds/
+
+# Test output
+tests/out/

@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="45%" r="70%">
+      <stop offset="0" stop-color="#5a2a1c"/>
+      <stop offset="1" stop-color="#1c0f0b"/>
+    </radialGradient>
+    <linearGradient id="fir" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3f6b3a"/>
+      <stop offset="1" stop-color="#14301c"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#ffe7a8" stop-opacity="0.9"/>
+      <stop offset="1" stop-color="#ffb347" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect x="8" y="8" width="240" height="240" rx="28" fill="url(#bg)" stroke="#c9a14a" stroke-width="8"/>
+  <rect x="22" y="22" width="212" height="212" rx="18" fill="none" stroke="#7d5e26" stroke-width="2"/>
+  <circle cx="128" cy="120" r="96" fill="url(#glow)" opacity="0.45"/>
+  <polygon points="128,40 168,98 150,98 186,150 162,150 202,204 54,204 94,150 70,150 106,98 88,98" fill="url(#fir)"/>
+  <rect x="116" y="204" width="24" height="18" fill="#4a2c18"/>
+  <circle cx="110" cy="112" r="7" fill="#b3202a"/>
+  <circle cx="150" cy="140" r="7" fill="#d9a520"/>
+  <circle cx="104" cy="170" r="7" fill="#d9a520"/>
+  <circle cx="160" cy="186" r="7" fill="#b3202a"/>
+  <circle cx="132" cy="160" r="6" fill="#e8e1d0"/>
+  <polygon points="128,22 134,36 149,36 137,45 141,59 128,51 115,59 119,45 107,36 122,36" fill="#f1c75a" stroke="#8a6420" stroke-width="2"/>
+</svg>
