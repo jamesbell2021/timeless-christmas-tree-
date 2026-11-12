@@ -48,21 +48,11 @@ func _ready() -> void:
 	_make_buses()
 	_sfx = Synth.make_sfx()
 	for i in 12:
-		var p := AudioStreamPlayer.new()
-		p.bus = SFX_BUS
-		add_child(p)
-		_sfx_players.append(p)
+		_sfx_players.append(_player(SFX_BUS))
 	for i in VOICES:
-		var v := AudioStreamPlayer.new()
-		v.bus = MUSIC_BUS
-		add_child(v)
-		_voices.append(v)
-	_fire = AudioStreamPlayer.new()
-	_fire.bus = AMB_BUS
-	add_child(_fire)
-	_wind = AudioStreamPlayer.new()
-	_wind.bus = AMB_BUS
-	add_child(_wind)
+		_voices.append(_player(MUSIC_BUS))
+	_fire = _player(AMB_BUS)
+	_wind = _player(AMB_BUS)
 	_queue_instrument_jobs()
 	_jobs.append([Synth.FireJob.new(6.0), _store_amb.bind("fire")])
 	_jobs.append([Synth.WindJob.new(9.0), _store_amb.bind("wind")])
@@ -71,23 +61,28 @@ func _ready() -> void:
 
 
 func _make_buses() -> void:
+	## The buses (and their reverbs) live in default_bus_layout.tres. That file
+	## matters for the browser build: the web audio graph is built from the bus
+	## layout at startup, so a bus only added here in code would be silent there.
+	## This just fills in anything missing.
 	for n in [MUSIC_BUS, AMB_BUS, SFX_BUS]:
 		if AudioServer.get_bus_index(n) == -1:
 			AudioServer.add_bus()
 			var idx := AudioServer.bus_count - 1
 			AudioServer.set_bus_name(idx, n)
 			AudioServer.set_bus_send(idx, "Master")
-	# A drawing-room reverb on the music and a touch on effects
-	var rv := AudioEffectReverb.new()
-	rv.room_size = 0.55
-	rv.damping = 0.6
-	rv.wet = 0.22
-	rv.dry = 0.9
-	AudioServer.add_bus_effect(AudioServer.get_bus_index(MUSIC_BUS), rv)
-	var rv2 := AudioEffectReverb.new()
-	rv2.room_size = 0.3
-	rv2.wet = 0.1
-	AudioServer.add_bus_effect(AudioServer.get_bus_index(SFX_BUS), rv2)
+
+
+func _player(bus: String) -> AudioStreamPlayer:
+	## Every sound in the game is synthesised at runtime. In the browser, Godot's
+	## default "sample" playback is silent for streams made at runtime, so web
+	## builds use "stream" playback, where the engine mixes the sound itself.
+	var p := AudioStreamPlayer.new()
+	p.bus = bus
+	if OS.has_feature("web"):
+		p.playback_type = AudioServer.PLAYBACK_TYPE_STREAM
+	add_child(p)
+	return p
 
 
 func _apply_volumes() -> void:

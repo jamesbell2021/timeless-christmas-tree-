@@ -201,6 +201,15 @@ func _chord_at(song: Dictionary, beat: float) -> Array:
 
 func _test_synth() -> void:
 	print("synth")
+	# The browser only hears buses that exist in the bus layout file, not ones made in code.
+	var layout := load("res://default_bus_layout.tres") as AudioBusLayout
+	var names: Array = []
+	if layout:
+		for prop in layout.get_property_list():
+			if str(prop["name"]).ends_with("/name"):
+				names.append(str(layout.get(prop["name"])))
+	for bus in ["Music", "Ambience", "SFX"]:
+		check(names.has(bus), "%s bus is in default_bus_layout.tres (the web build is silent without it)" % bus)
 	var sfx := Synth.make_sfx()
 	for k in ["click", "glass", "paper", "soft", "wood", "tinsel", "match", "chime", "sleigh", "page", "shutter"]:
 		check(sfx.has(k), "sfx %s exists" % k)
