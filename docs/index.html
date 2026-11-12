@@ -93,6 +93,49 @@ body {
 		<link id="-gd-engine-icon" rel="icon" type="image/png" href="index.icon.png" />
 <link rel="apple-touch-icon" href="index.apple-touch-icon.png"/>
 <meta name="description" content="A Timeless Christmas Tree: an Edwardian Yuletide. A cosy tree-decorating game.">
+<script>
+/* iPhone and iPad sound fix. iOS mutes web audio when the ring/silent switch is on, and only lets a page start sound from inside a real tap. */
+(function () {
+  try { if (navigator.audioSession) { navigator.audioSession.type = 'playback'; } } catch (e) {}
+  var Orig = window.AudioContext || window.webkitAudioContext;
+  var ctxs = [];
+  if (Orig) {
+    var Tracked = function (opts) { var c = opts ? new Orig(opts) : new Orig(); ctxs.push(c); return c; };
+    Tracked.prototype = Orig.prototype;
+    window.AudioContext = Tracked;
+    if (window.webkitAudioContext) { window.webkitAudioContext = Tracked; }
+  }
+  var silent = null;
+  function silentUrl() {
+    var n = 4410, b = new ArrayBuffer(44 + n * 2), v = new DataView(b);
+    function w(o, s) { for (var i = 0; i < s.length; i++) { v.setUint8(o + i, s.charCodeAt(i)); } }
+    w(0, 'RIFF'); v.setUint32(4, 36 + n * 2, true); w(8, 'WAVE'); w(12, 'fmt ');
+    v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+    v.setUint32(24, 22050, true); v.setUint32(28, 44100, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true);
+    w(36, 'data'); v.setUint32(40, n * 2, true);
+    return URL.createObjectURL(new Blob([b], { type: 'audio/wav' }));
+  }
+  function unlock() {
+    for (var i = 0; i < ctxs.length; i++) {
+      var c = ctxs[i];
+      if (c.state !== 'running' && c.state !== 'closed') { try { c.resume(); } catch (e) {} }
+    }
+    if (!navigator.audioSession && !silent) {
+      try {
+        silent = new Audio(silentUrl());
+        silent.loop = true;
+        silent.setAttribute('playsinline', '');
+        var p = silent.play();
+        if (p && p.catch) { p.catch(function () { silent = null; }); }
+      } catch (e) { silent = null; }
+    }
+  }
+  ['touchstart', 'touchend', 'pointerdown', 'pointerup', 'mousedown', 'click', 'keydown'].forEach(function (ev) {
+    window.addEventListener(ev, unlock, { capture: true, passive: true });
+  });
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) { unlock(); } });
+})();
+</script>
 	</head>
 	<body>
 		<canvas id="canvas">
