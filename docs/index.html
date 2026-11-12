@@ -99,12 +99,18 @@ body {
   try { if (navigator.audioSession) { navigator.audioSession.type = 'playback'; } } catch (e) {}
   var Orig = window.AudioContext || window.webkitAudioContext;
   var ctxs = [];
+  window.__tctAudio = { ctxs: ctxs, starts: 0, errors: [] };
   if (Orig) {
     var Tracked = function (opts) { var c = opts ? new Orig(opts) : new Orig(); ctxs.push(c); return c; };
     Tracked.prototype = Orig.prototype;
     window.AudioContext = Tracked;
     if (window.webkitAudioContext) { window.webkitAudioContext = Tracked; }
   }
+  if (window.AudioBufferSourceNode) {
+    var st = AudioBufferSourceNode.prototype.start;
+    AudioBufferSourceNode.prototype.start = function () { window.__tctAudio.starts++; return st.apply(this, arguments); };
+  }
+  window.addEventListener('error', function (e) { window.__tctAudio.errors.push(String(e.message || e)); });
   var silent = null;
   function silentUrl() {
     var n = 4410, b = new ArrayBuffer(44 + n * 2), v = new DataView(b);
@@ -134,6 +140,32 @@ body {
     window.addEventListener(ev, unlock, { capture: true, passive: true });
   });
   document.addEventListener('visibilitychange', function () { if (!document.hidden) { unlock(); } });
+  /* Add ?audiodebug to the address to see what the browser's sound system is doing. */
+  if (location.search.indexOf('audiodebug') >= 0) {
+    window.addEventListener('DOMContentLoaded', function () {
+      var d = document.createElement('div');
+      d.style.cssText = 'position:fixed;left:6px;top:6px;z-index:99999;background:rgba(0,0,0,.82);color:#ffe9a8;font:13px/1.35 monospace;padding:8px 10px;border:1px solid #c9a14a;max-width:92vw;white-space:pre-wrap;pointer-events:auto';
+      var btn = document.createElement('button');
+      btn.textContent = 'Beep through the game';
+      btn.style.cssText = 'display:block;margin-top:6px;font:14px monospace;padding:6px 10px';
+      btn.addEventListener('click', function (ev) {
+        ev.stopPropagation();
+        var c = ctxs[0];
+        if (!c) { return; }
+        try { c.resume(); } catch (e) {}
+        var o = c.createOscillator(), g = c.createGain();
+        o.frequency.value = 660; g.gain.value = 0.25;
+        o.connect(g); g.connect(c.destination); o.start(); o.stop(c.currentTime + 0.6);
+      });
+      var txt = document.createElement('div');
+      d.appendChild(txt); d.appendChild(btn); document.body.appendChild(d);
+      setInterval(function () {
+        var s = ctxs.map(function (c) { return c.state + ' @' + c.sampleRate + 'Hz t=' + c.currentTime.toFixed(1); }).join(' | ');
+        txt.textContent = 'contexts: ' + (s || 'none yet') + '\naudioSession: ' + (navigator.audioSession ? navigator.audioSession.type + ' / ' + navigator.audioSession.state : 'not supported') +
+          '\nsounds started: ' + window.__tctAudio.starts + '\nerrors: ' + (window.__tctAudio.errors.slice(-3).join(' ; ') || 'none') + '\n' + navigator.userAgent;
+      }, 500);
+    });
+  }
 })();
 </script>
 	</head>
