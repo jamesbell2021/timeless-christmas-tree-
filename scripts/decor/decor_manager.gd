@@ -182,6 +182,32 @@ func count() -> int:
 	return _items.size()
 
 
+func random_glint_point(rng: RandomNumberGenerator) -> Variant:
+	## A point on one of the placed decorations, for the Twinkle layer.
+	if _items.is_empty():
+		return null
+	var n: Node2D = _items[rng.randi() % _items.size()]
+	if not is_instance_valid(n):
+		return null
+	if n is Garland:
+		var d: Dictionary = (n as Garland).data
+		var a := Vector2(float(d.get("x", 0.0)), float(d.get("y", 0.0)))
+		var b := Vector2(float(d.get("x2", a.x)), float(d.get("y2", a.y)))
+		var t := rng.randf()
+		# Garlands sag between their ends; follow the droop roughly.
+		return a.lerp(b, t) + Vector2(0, sin(t * PI) * a.distance_to(b) * 0.12)
+	var r: Rect2 = (n.get("def") as Dictionary).get("rect", Rect2(-16, -16, 32, 32))
+	var local := r.position + Vector2(rng.randf_range(0.25, 0.75), rng.randf_range(0.2, 0.7)) * r.size
+	return n.global_position + local
+
+
+func breeze(strength: float = 0.25) -> void:
+	## A soft draught through the room: everything that can sway, sways a little.
+	for n in _items:
+		if is_instance_valid(n):
+			n.call("impulse", randf_range(-strength, strength))
+
+
 func light_count() -> int:
 	var c := 0
 	for n in _items:

@@ -52,6 +52,7 @@ func show_title() -> void:
 	var t := TitleScreen.new()
 	t.begin_story.connect(func() -> void: play_story(0, false))
 	t.go_parlour.connect(func() -> void: show_parlour(false))
+	t.go_fireside.connect(func() -> void: show_parlour(false, true))
 	_switch(t)
 
 
@@ -79,8 +80,8 @@ func play_story(stage: int, single: bool) -> void:
 	_switch(s)
 
 
-func show_parlour(first_visit: bool) -> void:
-	var p := Parlour.new(first_visit)
+func show_parlour(first_visit: bool, fireside: bool = false) -> void:
+	var p := Parlour.new(first_visit, fireside)
 	p.story_requested.connect(func(stage: int) -> void: play_story(stage, true))
 	p.title_requested.connect(show_title)
 	_switch(p)

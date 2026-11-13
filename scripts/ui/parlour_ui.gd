@@ -119,6 +119,8 @@ func _build_tools() -> void:
 	music.toggled.connect(func(on: bool) -> void:
 		GameState.set_setting("music_volume", 0.65 if on else 0.0)
 	)
+	var fire_btn := _round("fireside", "Fireside mode: your parlour as a screensaver [F]", Vector2(x - gap * 6, y))
+	fire_btn.pressed.connect(func() -> void: parlour.set_fireside(true))
 	restore_btn = _round("eye", "Show the interface again [H]", Vector2(x, y))
 	restore_btn.visible = false
 	restore_btn.modulate.a = 0.55
@@ -274,6 +276,24 @@ func set_ui_hidden(h: bool) -> void:
 	AudioDirector.sfx("page")
 
 
+func has_modal() -> bool:
+	return _modal != null
+
+
+func set_fireside(on: bool) -> void:
+	## Fireside (screensaver) mode: nothing on screen but the room itself.
+	_hidden = false
+	for c in root.get_children():
+		if c == _fade or c == _toast:
+			continue
+		if c is Control:
+			(c as Control).visible = not on
+	restore_btn.visible = false
+	trunk.visible = trunk.open and not on
+	if on:
+		toast("Fireside mode. Click, tap or press any key to return.")
+
+
 func open_settings() -> void:
 	if _modal:
 		return
@@ -342,6 +362,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		parlour.decor.undo()
 	elif k.keycode == KEY_H:
 		set_ui_hidden(not _hidden)
+	elif k.keycode == KEY_F:
+		parlour.set_fireside(true)
 	elif k.keycode == KEY_T:
 		trunk_btn.button_pressed = not trunk_btn.button_pressed
 	elif k.keycode == KEY_L:

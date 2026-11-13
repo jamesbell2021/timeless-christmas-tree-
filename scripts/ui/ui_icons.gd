@@ -59,6 +59,17 @@ static func draw(ci: CanvasItem, kind: String, r: Rect2, col: Color = UIKit.GOLD
 			st.append(st[0])
 			ci.draw_polyline(st, col, w, true)
 			ci.draw_rect(Rect2(c + Vector2(-s * 0.38, -s * 0.95), Vector2(s * 0.72, s * 0.3)), col)
+		"fireside":
+			# A hearth: mantel shelf, arched firebox and a flame within.
+			ci.draw_line(c + Vector2(-s * 0.9, -s * 0.62), c + Vector2(s * 0.9, -s * 0.62), col, w * 1.5)
+			var arch := PackedVector2Array([c + Vector2(-s * 0.68, s * 0.8)])
+			for i in 13:
+				var t := float(i) / 12.0
+				arch.append(c + Vector2(-s * 0.68 + t * s * 1.36, -s * 0.05 - sin(t * PI) * s * 0.42))
+			arch.append(c + Vector2(s * 0.68, s * 0.8))
+			ci.draw_polyline(arch, col, w, true)
+			ci.draw_line(c + Vector2(-s * 0.9, s * 0.82), c + Vector2(s * 0.9, s * 0.82), col, w * 1.3)
+			_flame(ci, c + Vector2(0, s * 0.72), s * 0.85, col)
 		"undo":
 			ci.draw_arc(c + Vector2(s * 0.1, s * 0.1), s * 0.6, PI * 1.05, PI * 2.3, 20, col, w * 1.2, true)
 			var tip := c + Vector2(-s * 0.5, s * 0.05)

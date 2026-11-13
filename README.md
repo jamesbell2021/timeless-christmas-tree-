@@ -30,6 +30,7 @@ There are no timers, budgets or scores.
 | Light the tree / the lamps | Flame / lamp roundels (top right) | `C` / `L` |
 | Undo | Curved-arrow roundel | `Ctrl+Z` |
 | Admire the view | Eye roundel | `H` |
+| Fireside mode (screensaver) | Hearth roundel | `F` |
 | Music on/off | Note roundel | `M` |
 
 Sweep the pointer quickly through the branches to set the ornaments swinging.
@@ -51,6 +52,8 @@ Sweep the pointer quickly through the branches to set the ornaments swinging.
 - **The Timeline**: five gilt roundels showing the tree's life. Click any chapter you have reached to watch it again.
 - **The Album**: six pages, each holding its own arrangement, with photograph thumbnails. You can copy a tree to a new page or start afresh. This is how you switch between different finished designs.
 - **Share Your Design**: takes a snapshot of the parlour and frames it as a vintage Christmas card, with a gilt border, holly, a choice of greeting and an optional "with love from…". It downloads as a PNG in the browser, or saves to *Pictures* on desktop.
+- **Fireside mode**: turns your parlour into a screensaver. The interface goes away, the lamps dim, the candles are lit and the view drifts slowly round the room. If the Album holds more than one decorated tree, it turns the page every few minutes. It starts from the hearth roundel, the `F` key, the title page, or by itself after five quiet minutes (you can turn that off in Settings). Click, tap or press any key to come back. On the web it also asks the browser to keep the screen awake.
+- **Twinkle**: glints of candlelight catch on the ornaments, more of them the more you hang.
 - **Saved automatically**, including on the web (in the browser's storage).
 
 **Sound**
@@ -63,6 +66,7 @@ Sweep the pointer quickly through the branches to set the ornaments swinging.
 | ![Chapter II](screenshots/chapter2-forest.jpg) | ![Chapter III](screenshots/chapter3-arrival.jpg) |
 | ![Chapter IV](screenshots/chapter4-choosing.jpg) | ![Lamplight](screenshots/parlour-lamplight.jpg) |
 | ![The Album](screenshots/album.jpg) | ![Share card](screenshots/share-card.jpg) |
+| ![Fireside mode](screenshots/fireside.jpg) | |
 
 ---
 
@@ -82,7 +86,7 @@ scripts/
   decor/      DecorManager (drag & drop, undo, save), Decoration, Garland,
               Placement (pure placement rules)
   art/        TreeArt (procedural fir), DecorArt (every ornament), Room* (the parlour),
-              Figure (the family), Robin, Flame, LightGlow, Snowfall, Painter
+              Figure (the family), Robin, Flame, LightGlow, Twinkle, Snowfall, Painter
   audio/      Synth (Karplus-Strong strings, bells, noise; resumable render jobs), Carols
   scenes/     Main (scene director), TitleScreen, StoryScene + four chapters, Parlour, PostFX
   ui/         UIKit (fonts, palette, carved-wood panels), OrnateButton, TrunkPanel,

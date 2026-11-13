@@ -5,11 +5,13 @@ extends Node2D
 
 signal begin_story
 signal go_parlour
+signal go_fireside
 
 var _card: Control
 var _t := 0.0
 var _modal: ModalPanel
 var _root: Control
+var _has_save := false
 
 
 func _ready() -> void:
@@ -57,6 +59,7 @@ func _build_ui() -> void:
 	root.add_child(_card)
 	var y := 470.0
 	var has_save := GameState.has_save()
+	_has_save = has_save
 	var begin := OrnateButton.new("Begin the Story" if not has_save else "Watch the Story Again", "plaque")
 	begin.font_size = 32
 	begin.custom_minimum_size = Vector2(440, 74)
@@ -82,6 +85,18 @@ func _build_ui() -> void:
 		begin.font_size = 26
 		begin.custom_minimum_size = Vector2(440, 64)
 		begin.size = begin.custom_minimum_size
+	if has_save:
+		var fire := OrnateButton.new("Fireside Screensaver", "plaque", "fireside")
+		fire.font_size = 22
+		fire.custom_minimum_size = Vector2(440, 52)
+		fire.size = fire.custom_minimum_size
+		fire.position = Vector2(400 - 220, y + 170)
+		fire.tooltip_text = "Your decorated parlour by candlelight, drifting gently, for as long as you like."
+		fire.pressed.connect(func() -> void:
+			GameState.reach_stage(3)
+			go_fireside.emit()
+		)
+		_card.add_child(fire)
 	var settings := OrnateButton.new("", "round", "music")
 	settings.tooltip_text = "Settings"
 	settings.custom_minimum_size = Vector2(60, 60)
@@ -123,8 +138,9 @@ func _draw_card() -> void:
 	UIKit.divider(_card, Vector2(r.size.x * 0.5, 340), 220, UIKit.GOLD_DARK)
 	UIKit.text_centered(_card, UIKit.font("title_italic"), Vector2(r.size.x * 0.5, 392), "An Edwardian Yuletide", 40, UIKit.INK, false)
 	var shimmer := 0.5 + 0.5 * sin(_t * 1.4)
-	UIKit.text_centered(_card, UIKit.font("body_italic"), Vector2(r.size.x * 0.5, 680), "No timers. No scores. Only the joy of making.", 24, Color(UIKit.INK, 0.6 + shimmer * 0.2), false)
-	UIKit.text_centered(_card, UIKit.font("body"), Vector2(r.size.x * 0.5, 716), "Every picture, carol and crackle is made in code.", 18, Color(UIKit.INK, 0.5), false)
+	UIKit.text_centered(_card, UIKit.font("body_italic"), Vector2(r.size.x * 0.5, 718.0 if _has_save else 680.0), "No timers. No scores. Only the joy of making.", 24, Color(UIKit.INK, 0.6 + shimmer * 0.2), false)
+	if not _has_save:
+		UIKit.text_centered(_card, UIKit.font("body"), Vector2(r.size.x * 0.5, 716.0), "Every picture, carol and crackle is made in code.", 18, Color(UIKit.INK, 0.5), false)
 
 
 func _paint_village(ci: CanvasItem) -> void:

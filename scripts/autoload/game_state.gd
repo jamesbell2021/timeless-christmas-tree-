@@ -28,6 +28,8 @@ var settings := {
 	"sfx_volume": 0.8,
 	"painterly": 2,        # 0 = off, 1 = light (grade only), 2 = full oil-paint filter
 	"snow": true,
+	"twinkle": true,
+	"idle_fireside": true,
 	"fullscreen": false,
 }
 

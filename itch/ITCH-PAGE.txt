@@ -1,0 +1,137 @@
+A TIMELESS CHRISTMAS TREE: AN EDWARDIAN YULETIDE
+itch.io page pack (version 1.1)
+================================================
+
+WHAT IS IN THIS PACK
+--------------------
+A-Timeless-Christmas-Tree-web.zip   Upload this as the game (HTML, plays in the browser)
+art/cover-630x500.png               Cover image (itch asks for 630 x 500)
+art/banner-1920x480.png             Banner for the top of the page (Edit theme > Banner)
+art/social-1280x720.png             For posts on social media, Discord and so on
+art/icon.png                        Square icon
+screenshots/01 to 10                Upload in this order
+ITCH-PAGE.txt                       This file: all the text to paste in
+
+
+STEP BY STEP: SETTING UP THE PAGE
+---------------------------------
+1.  itch.io > Dashboard > Create new project.
+2.  Title:              A Timeless Christmas Tree
+3.  Project URL:        timeless-christmas-tree
+4.  Short description:  paste the TAGLINE below.
+5.  Classification:     Games
+6.  Kind of project:    HTML  (You have a ZIP or HTML file that will be played in the browser)
+7.  Release status:     Released
+8.  Pricing:            No payments, or "$0 or donate" if you would like tips.
+9.  Uploads:            upload A-Timeless-Christmas-Tree-web.zip and tick
+                        "This file will be played in the browser".
+10. Embed options:
+      Viewport dimensions:   1280 x 720
+      Tick:                  Fullscreen button
+      Tick:                  Mobile friendly, orientation Landscape
+      Leave unticked:        SharedArrayBuffer support (the game does not need it)
+      Leave unticked:        Automatically start on page load (the click to start is
+                             what lets the browser play the music)
+11. Details > Description:  paste the DESCRIPTION below.
+12. Genre:              Simulation
+13. Tags:               paste the TAGS below (itch allows up to 10).
+14. AI disclosure:      answer honestly. Suggested wording is at the bottom of this file.
+15. Cover image:        art/cover-630x500.png
+16. Screenshots:        add the ten files from screenshots/ in number order.
+17. Save, then View page > Edit theme:
+      Banner:             art/banner-1920x480.png
+      Background colour:  #150d08
+      Background 2:       #23150d
+      Text:               #f1e3c4
+      Link:               #e9c877
+      Button:             #8c1c1c
+      Font:               "IM Fell English" or "EB Garamond", if they are in the font list
+18. Set Visibility to Public and save.
+
+
+TAGLINE (short description)
+---------------------------
+A cosy Edwardian Christmas: watch a little fir grow up, decorate it by candlelight, then leave it glowing as a fireside screensaver.
+
+
+DESCRIPTION (paste into the Description box)
+--------------------------------------------
+Christmas Eve, 1901. A fir tree that began as a seed beneath the Mourne Mountains has been carried home through the snow, and it is standing in the parlour, waiting for you.
+
+A Timeless Christmas Tree is a gentle Christmas game with no timers, no scores and nothing to get wrong. It plays in your browser, on a computer, tablet or phone.
+
+FIRST, A SHORT STORY
+Four hand-painted chapters follow the tree from a seedling in spring 1893, through eight years of sun, gales and snow, to the lantern-lit evening a family chooses it. A robin keeps it company the whole way. You can skip the story, or watch any chapter again later.
+
+THEN, THE PARLOUR IS YOURS
+Open the old trunk and you will find 54 period decorations in six velvet trays:
+- beeswax candles and the very first electric fairy lamps
+- blown glass from Lauscha, Dresden paper stars, gingerbread and clove oranges
+- tinsel, popcorn, cranberry and glass-bead garlands that you drape yourself
+- four tree toppers
+- stockings for the mantel, parcels, a teddy bear, a rocking horse, a wreath and mistletoe
+
+Drag them where you like. Sweep the pointer through the branches and the ornaments swing and chime. Light the candles one by one, dim the lamps, and watch the glass catch the light.
+
+FIRESIDE MODE: A CHRISTMAS SCREENSAVER
+When your tree is finished, press F (or the little hearth button). The buttons disappear, the lamps go down, and the view drifts slowly around the room while the fire crackles, the snow falls and the carols play. If you have decorated more than one tree, it turns to the next one every few minutes. Put it on the big screen and leave it on all evening. Click or press any key to come back.
+
+ALSO IN THE BOX
+- An Album with six pages, so you can keep six different trees
+- Share Your Design: turns your parlour into a vintage Christmas card you can download and send
+- Five carols played on a soft piano and harp: O Tannenbaum, Silent Night, Good King Wenceslas, Deck the Hall and We Wish You a Merry Christmas
+- Everything saves by itself in your browser
+
+MADE ENTIRELY IN CODE
+There is not a single image or sound file in this game. Every picture, every carol, the crackle of the fire and the chime of the glass is generated by code as you play.
+
+CONTROLS
+- Open the trunk: the Open the Trunk button, or T
+- Place or move a decoration: drag it
+- Put one away: right-click it, or drag it back to the trunk
+- Light the tree / the lamps: C / L
+- Fireside mode (screensaver): F
+- Hide the buttons: H
+- Undo: Ctrl+Z
+- Music on or off: M
+
+Tip: press the fullscreen button under the game for the best view.
+
+Happy Christmas from 3BL.
+
+
+TAGS (up to 10)
+---------------
+christmas, cozy, relaxing, decorating, sandbox, wholesome, family-friendly, casual, godot, holiday
+
+
+RELEASE NOTE / FIRST DEVLOG POST
+--------------------------------
+Title: A Timeless Christmas Tree is out, and it is free
+
+It is Christmas Eve, 1901, and there is a tree in the parlour that needs decorating.
+
+A Timeless Christmas Tree is a cosy little game with no timers and no scores. Watch a short painted story of a fir tree growing up under the Mourne Mountains, then decorate it with 54 Edwardian ornaments, light the candles and send the result to someone as a Christmas card.
+
+New in this version: Fireside mode. Press F and your parlour becomes a screensaver, with the fire going, the snow falling and the carols playing. It is made to be left on.
+
+It plays in the browser, it is free, and every picture and sound in it is made in code.
+
+Happy Christmas from 3BL.
+
+
+SOCIAL POST (short)
+-------------------
+It's Christmas Eve, 1901, and the tree needs decorating.
+
+A Timeless Christmas Tree: a cosy, free browser game. 54 Edwardian ornaments, real candlelight, and a fireside screensaver mode to leave on all evening. No timers, no scores.
+
+Happy Christmas from 3BL.
+[link to your itch page]
+
+
+AI DISCLOSURE (itch asks about this when you publish)
+-----------------------------------------------------
+itch.io asks whether a project contains generative AI content. This game's code was written with an AI coding assistant (Claude), and the art and audio are produced by that code at run time, so the honest answer is Yes. Suggested note for the page:
+
+"This game was designed by me and programmed with the help of an AI coding assistant. There are no AI-generated image or audio files in it: all the pictures and sounds are drawn and synthesised by the game's own code."

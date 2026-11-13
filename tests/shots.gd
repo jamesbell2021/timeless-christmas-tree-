@@ -18,6 +18,12 @@ func _ready() -> void:
 		await _scene_shots(StoryYears.new(), "s2_years", [4.0, 9.0, 17.0, 26.0])
 		await _scene_shots(StoryArrival.new(), "s3_arrival", [7.0, 17.0])
 		await _scene_shots(StoryChoosing.new(), "s4_choosing", [5.0, 11.0, 21.0])
+	if only == "title_save":
+		GameState.stage_reached = 4
+		GameState.story_complete = true
+		await _scene_shots(TitleScreen.new(), "title_save", [3.0])
+		get_tree().quit()
+		return
 	if only == "showcase":
 		await _showcase()
 		get_tree().quit()
@@ -113,6 +119,19 @@ func _showcase() -> void:
 	await _wait(0.6)
 	await _shot("showcase_clean")
 	p.ui.set_ui_hidden(false)
+	p.set_fireside(true)
+	await _wait(5.0)
+	await _shot("showcase_fireside_a")
+	await _wait(22.0)
+	await _shot("showcase_fireside_b")
+	p.set_fireside(false)
+	await _wait(1.2)
+	await _shot("showcase_after_fireside")
+	p.ui.open_settings()
+	await _wait(0.6)
+	await _shot("showcase_settings")
+	p.ui._modal.close_panel()
+	await _wait(0.5)
 	p.set_lamps(true, false)
 	await _wait(0.8)
 	await p.ui.open_share()

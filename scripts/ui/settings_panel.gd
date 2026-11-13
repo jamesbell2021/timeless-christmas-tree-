@@ -14,7 +14,7 @@ var show_actions := true
 
 
 func _init() -> void:
-	super("Settings", Vector2(860, 700))
+	super("Settings", Vector2(860, 840))
 
 
 func _build() -> void:
@@ -46,6 +46,10 @@ func _build() -> void:
 	y += 70
 	_toggle_row("Falling Snow", "snow", x0, y)
 	y += 70
+	_toggle_row("Ornament Twinkle", "twinkle", x0, y)
+	y += 70
+	_toggle_row("Fireside When Idle", "idle_fireside", x0, y).tooltip_text = "After five quiet minutes the parlour becomes a screensaver. Click or press a key to come back."
+	y += 70
 	if not OS.has_feature("web_android") and not OS.has_feature("web_ios"):
 		_toggle_row("Full Screen", "fullscreen", x0, y)
 	y += 84
@@ -72,7 +76,7 @@ func _build() -> void:
 	add_label("Your trees are saved automatically.", Vector2(0, y + 74), "body_italic", 22, Color(UIKit.INK, 0.7), panel_size.x).horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 
 
-func _toggle_row(label: String, key: String, x0: float, y: float) -> void:
+func _toggle_row(label: String, key: String, x0: float, y: float) -> OrnateButton:
 	add_label(label, Vector2(x0, y), "caps", 28)
 	var b := OrnateButton.new("On" if GameState.settings[key] else "Off", "paper")
 	b.toggle_mode = true
@@ -87,6 +91,7 @@ func _toggle_row(label: String, key: String, x0: float, y: float) -> void:
 		b.queue_redraw()
 	)
 	content.add_child(b)
+	return b
 
 
 func _cycle_paint() -> void:
