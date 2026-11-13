@@ -19,6 +19,7 @@ var ui: ParlourUI
 var darkness: ColorRect
 
 var twinkle: Twinkle
+var cat: ParlourCat
 
 ## Fireside mode: the parlour as a screensaver. The interface goes away, the
 ## lamps are dimmed, the view drifts slowly round the room and, if the Album
@@ -120,6 +121,9 @@ func _build_room() -> void:
 	twinkle = Twinkle.new()
 	twinkle.decor = decor
 	add_child(twinkle)
+	cat = ParlourCat.new(self)
+	add_child(cat)
+	decor.pointer_blocker = cat.hit_test
 
 
 func _build_lighting() -> void:

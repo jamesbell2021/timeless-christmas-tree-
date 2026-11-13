@@ -2,12 +2,17 @@ class_name TrunkPanel
 extends Control
 ## The vintage trunk: a drawer of period decorations sorted into six
 ## velvet-lined trays. Pressing a slot starts a drag in the DecorManager.
+## Drag the lid to carry the trunk anywhere along the room (so the right-hand
+## side can be decorated too); double-click the lid to send it back. Where it
+## was left is remembered in the settings.
 
 signal drag_started(id: String)
 signal closed
 
 const W := 356.0
 const SLOT := 98.0
+const H := 812.0
+const LID := Rect2(10, 10, W - 20, 84)
 
 var open := false
 var _tab := "lights"
@@ -15,10 +20,12 @@ var _tabs: Dictionary = {}
 var _grid: GridContainer
 var _scroll: ScrollContainer
 var _title := ""
+var _carrying := false
+var _grab := Vector2.ZERO
 
 
 func _ready() -> void:
-	size = Vector2(W, 812)
+	size = Vector2(W, H)
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	# Tabs
 	var tx := 22.0
@@ -44,7 +51,7 @@ func _ready() -> void:
 	# Slots
 	_scroll = ScrollContainer.new()
 	_scroll.position = Vector2(22, 204)
-	_scroll.size = Vector2(W - 44, 548)
+	_scroll.size = Vector2(W - 44, 536)
 	_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	add_child(_scroll)
 	_grid = GridContainer.new()
@@ -53,6 +60,59 @@ func _ready() -> void:
 	_grid.add_theme_constant_override("v_separation", 4)
 	_scroll.add_child(_grid)
 	_select_tab("lights")
+
+
+static func clamp_pos(p: Vector2) -> Vector2:
+	## Keep the whole trunk on screen, between the tool roundels and the bar.
+	return Vector2(clampf(p.x, 8.0, 1912.0 - W), clampf(p.y, 86.0, RoomLayout.UI_BAR_TOP - H + 6.0))
+
+
+static func docked_pos() -> Vector2:
+	return Vector2(1904.0 - W, 124.0)
+
+
+static func home_pos() -> Vector2:
+	## Where the trunk lives when open: the player's spot, or docked right.
+	var x := float(GameState.settings.get("trunk_x", -1.0))
+	if x < 0.0:
+		return docked_pos()
+	return clamp_pos(Vector2(x, float(GameState.settings.get("trunk_y", 124.0))))
+
+
+func _gui_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and (event as InputEventMouseButton).button_index == MOUSE_BUTTON_LEFT:
+		var mb := event as InputEventMouseButton
+		if mb.pressed and LID.has_point(mb.position):
+			if mb.double_click:
+				_carrying = false
+				GameState.set_setting("trunk_x", -1.0)
+				GameState.set_setting("trunk_y", 124.0)
+				create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT) \
+						.tween_property(self, "position", docked_pos(), 0.35)
+				AudioDirector.sfx("trunk_close", 1.1, -6.0)
+			else:
+				_carrying = true
+				_grab = get_global_mouse_position() - global_position
+				AudioDirector.sfx("wood", 0.8, -8.0)
+			accept_event()
+		elif not mb.pressed and _carrying:
+			_carrying = false
+			GameState.set_setting("trunk_x", position.x)
+			GameState.set_setting("trunk_y", position.y)
+			AudioDirector.sfx("wood", 0.7, -8.0)
+			accept_event()
+	elif event is InputEventMouseMotion:
+		var mm := event as InputEventMouseMotion
+		if _carrying:
+			position = clamp_pos(get_global_mouse_position() - _grab)
+			accept_event()
+		mouse_default_cursor_shape = CURSOR_MOVE if (_carrying or LID.has_point(mm.position)) else CURSOR_ARROW
+
+
+func _get_tooltip(at_position: Vector2) -> String:
+	if LID.has_point(at_position):
+		return "Drag the lid to move the trunk (double-click to send it back)"
+	return ""
 
 
 func _select_tab(id: String) -> void:
@@ -89,10 +149,16 @@ func _draw() -> void:
 	draw_rect(Rect2(hx - 12, lid.end.y - 18, 24, 12), UIKit.GOLD)
 	draw_circle(Vector2(hx, lid.end.y - 12), 3, UIKit.WOOD_DARK)
 	UIKit.gilt_text(self, UIKit.font("title"), Vector2(lid.position.x + 148, lid.position.y + 34), "The Trunk", 38)
+	# Brass grip studs: a hint that the lid is the handle
+	for gx in [lid.position.x + 52.0, lid.position.x + 244.0]:
+		for gy in 2:
+			for gxx in 3:
+				draw_circle(Vector2(gx + gxx * 7.0, lid.position.y + 62 + gy * 7.0), 1.8, Color(UIKit.GOLD_LIGHT, 0.7))
 	# Tray title
 	UIKit.text_centered(self, UIKit.font("title_italic"), Vector2(W * 0.5, 176), _title, 25, UIKit.GOLD_LIGHT)
 	UIKit.divider(self, Vector2(W * 0.5, 194), 120)
 	# Footer instructions
-	var fy := size.y - 46
+	var fy := size.y - 56
 	UIKit.text_centered(self, UIKit.font("body_italic"), Vector2(W * 0.5, fy), "Drag onto the tree or into the room", 18, Color(UIKit.TEXT_LIGHT, 0.8))
-	UIKit.text_centered(self, UIKit.font("body_italic"), Vector2(W * 0.5, fy + 22), "Right-click, or drag back here, to put away", 15, Color(UIKit.TEXT_LIGHT, 0.6))
+	UIKit.text_centered(self, UIKit.font("body_italic"), Vector2(W * 0.5, fy + 21), "Right-click, or drag back here, to put away", 15, Color(UIKit.TEXT_LIGHT, 0.6))
+	UIKit.text_centered(self, UIKit.font("body_italic"), Vector2(W * 0.5, fy + 39), "Drag the lid to move the trunk", 15, Color(UIKit.TEXT_LIGHT, 0.6))

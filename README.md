@@ -23,6 +23,7 @@ There are no timers, budgets or scores.
 | Action | Mouse / touch | Keys |
 |---|---|---|
 | Open the trunk | **Open the Trunk** button | `T` |
+| Move the trunk | Drag its lid anywhere along the room (double-click the lid to send it back) | |
 | Place a decoration | Drag it from the trunk onto the tree or into the room | |
 | Move a decoration | Drag it | |
 | Put a decoration away | Right-click it, or drag it back to the trunk | |
@@ -32,8 +33,12 @@ There are no timers, budgets or scores.
 | Admire the view | Eye roundel | `H` |
 | Fireside mode (screensaver) | Hearth roundel | `F` |
 | Music on/off | Note roundel | `M` |
+| Stroke Marmalade the cat | Press on her and stroke, or tap | |
+| Shoo her off the tree | Tap her while she's stalking an ornament | |
 
 Sweep the pointer quickly through the branches to set the ornaments swinging.
+
+**Marmalade**, the ginger tabby by the fire, purrs when you stroke her, but she has her limits. Keep going without a break and she sits up, flattens her ears and lashes her tail; ignore that and she hisses and storms off for half a minute or so. Every minute or two she may also wake, pad over to the tree, wiggle and swipe at a low ornament. Sometimes it ends up on the floor, where it stays until you hang it back up (Undo works too). She never touches candles or garlands, and *Settings > Mischievous Cat* turns the swiping off.
 
 ---
 
@@ -89,6 +94,7 @@ scripts/
               Figure (the family), Robin, Flame, LightGlow, Twinkle, Snowfall, Painter
   audio/      Synth (Karplus-Strong strings, bells, noise; resumable render jobs), Carols
   scenes/     Main (scene director), TitleScreen, StoryScene + four chapters, Parlour, PostFX
+  actors/     ParlourCat (Marmalade: state machine, procedural poses, petting, mischief)
   ui/         UIKit (fonts, palette, carved-wood panels), OrnateButton, TrunkPanel,
               TimelineBar, AlbumPanel, ShareOverlay, SettingsPanel, Caption, CursorHint
 shaders/      painterly (Kuwahara oil-paint filter), watercolour, fire
@@ -103,6 +109,8 @@ The main patterns, which work well as teaching examples:
 - **Lighting by blending.** A multiply layer darkens the room, and additive `LightGlow` sprites (fire, candles, lamps, bulbs) sit on top. This gives the "pools of warm light" look without any 2D lights.
 - **Post-processing for style.** The parlour goes through a 4-sector Kuwahara filter with canvas weave and a warm grade. The story goes through a watercolour filter with wobble, edge pooling, granulation and a deckled paper border. The UI sits on its own `CanvasLayer` above the filter, so text stays crisp.
 - **Audio without files.** Piano and harp notes are Karplus-Strong plucked strings, tuned to within a cent and checked by FFT. They render a few thousand samples per frame through resumable jobs, so the web build never freezes. The sequencer arranges each melody over its chord chart (waltz, march or rolling arpeggio).
+- **A readable state machine with telegraphing.** `ParlourCat` is one enum of states (sleep, rouse, walk, stalk, pounce, gloat, hiss, flee, away). Each risky moment is signalled before it happens: she sits up and stares at the tree before a raid, and wiggles before she pounces (so the player can shoo her). She gives a warning sit, with flat ears and a lashing tail, before she bolts. Her patience is one number that strokes raise and time lowers, so gentle petting with pauses never makes her run.
+- **A master-bus limiter.** Up to 28 carol voices, the fire, the wind and the sound effects all mix into one output. A compressor and a hard limiter on the Master bus (in `default_bus_layout.tres`, so the web build has them too) stop the sum from clipping.
 - **Adaptive quality.** If the full oil-paint filter can't hold a smooth frame rate, the parlour steps down to lighter brushwork once and tells the player. They can change it in *Settings*.
 
 ---

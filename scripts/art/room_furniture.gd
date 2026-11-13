@@ -1,18 +1,15 @@
 class_name RoomFurniture
 extends Node2D
-## The oxblood wingback, the lamp table and a sleeping cat by the fire.
+## The oxblood wingback and the lamp table. (Marmalade the cat is her own
+## node now: see ParlourCat.)
 
 const L = preload("res://scripts/art/room_layout.gd")
 
 var lamp_glows: Array[LightGlow] = []
-var _cat: Painter
-var _t := 0.0
 
 
 func _ready() -> void:
 	add_child(Painter.new(_paint_static))
-	_cat = Painter.new(_paint_cat)
-	add_child(_cat)
 	var shade := LightGlow.new(Color(1.0, 0.72, 0.4), 0.7, 150.0, 0.05)
 	shade.position = L.LAMP_GLOW
 	add_child(shade)
@@ -30,11 +27,6 @@ func set_lamp_lit(on: bool) -> void:
 
 
 var _lamp_on := true
-
-
-func _process(delta: float) -> void:
-	_t += delta
-	_cat.queue_redraw()
 
 
 func _paint_static(ci: CanvasItem) -> void:
@@ -155,60 +147,6 @@ func _side_table(ci: CanvasItem) -> void:
 	ci.draw_colored_polygon(PackedVector2Array([c + Vector2(30, -12), c + Vector2(46, -12), c + Vector2(43, -1), c + Vector2(33, -1)]), Color(0.96, 0.95, 0.92))
 	ci.draw_arc(c + Vector2(48, -7), 4, -PI * 0.5, PI * 0.5, 8, Color(0.96, 0.95, 0.92), 2.0)
 	ci.draw_line(c + Vector2(31, -10), c + Vector2(45, -10), Color(0.2, 0.4, 0.6), 1.5)
-
-
-func _paint_cat(ci: CanvasItem) -> void:
-	## A ginger tabby asleep by the hearth; she breathes and twitches her tail.
-	var c := Vector2(400, 850)
-	var breathe := 1.0 + sin(_t * 1.6) * 0.035
-	var ginger := Color(0.72, 0.4, 0.16)
-	var light := Color(0.86, 0.6, 0.32)
-	var dark := Color(0.42, 0.2, 0.07)
-	var outline := Color(0.22, 0.1, 0.04, 0.8)
-	ci.draw_colored_polygon(DecorArt.ellipse_pts(c + Vector2(0, 24), 70, 10), Color(0, 0, 0, 0.4))
-	# Curled body with a raised haunch at the back
-	var body := DecorArt.ellipse_pts(c, 50, 24 * breathe, 28)
-	var haunch := DecorArt.ellipse_pts(c + Vector2(24, -6 * breathe), 30, 26 * breathe, 24)
-	ci.draw_colored_polygon(haunch, ginger.darkened(0.05))
-	ci.draw_colored_polygon(body, ginger)
-	var hl := haunch.duplicate()
-	hl.append(hl[0])
-	ci.draw_polyline(hl, outline, 2.0, true)
-	# Tabby stripes over the back
-	for k in 7:
-		var x := c.x - 26 + k * 10.0
-		ci.draw_arc(Vector2(x, c.y + 14), 26, PI * 1.32, PI * 1.62, 6, dark, 3.0, true)
-	ci.draw_colored_polygon(DecorArt.ellipse_pts(c + Vector2(-6, 12), 34, 9), light)
-	# Tail wrapped round the front, its tip twitching now and then
-	var twitch := maxf(0.0, sin(_t * 0.7)) * sin(_t * 9.0) * 0.3
-	var tail := PackedVector2Array()
-	for i in 16:
-		var t := float(i) / 15.0
-		var a := -PI * 0.05 + t * PI * 0.92 + twitch * t * t
-		tail.append(c + Vector2(10, 0) + Vector2(cos(a) * 62, sin(a) * 22 + 2))
-	ci.draw_polyline(tail, outline, 13.0, true)
-	ci.draw_polyline(tail, ginger.darkened(0.08), 10.0, true)
-	for i in range(2, 15, 3):
-		ci.draw_circle(tail[i], 4.0, dark)
-	ci.draw_circle(tail[tail.size() - 1], 5.5, light)
-	# Head resting on the front paws, facing the fire
-	var h := c + Vector2(-50, 6)
-	ci.draw_colored_polygon(DecorArt.ellipse_pts(h + Vector2(2, 16), 16, 6), Color(0.95, 0.9, 0.82))
-	ci.draw_colored_polygon(PackedVector2Array([h + Vector2(-15, -6), h + Vector2(-13, -30), h + Vector2(-1, -14)]), ginger.darkened(0.12))
-	ci.draw_colored_polygon(PackedVector2Array([h + Vector2(1, -15), h + Vector2(12, -31), h + Vector2(16, -8)]), ginger.darkened(0.12))
-	ci.draw_colored_polygon(PackedVector2Array([h + Vector2(-12, -9), h + Vector2(-11, -24), h + Vector2(-4, -14)]), Color(0.85, 0.55, 0.5))
-	var head := DecorArt.ellipse_pts(h, 20, 17, 24)
-	ci.draw_colored_polygon(head, ginger)
-	var ho := head.duplicate()
-	ho.append(ho[0])
-	ci.draw_polyline(ho, outline, 2.0, true)
-	ci.draw_arc(h + Vector2(0, -6), 9, PI * 1.25, PI * 1.75, 6, dark, 2.5, true)
-	ci.draw_colored_polygon(DecorArt.ellipse_pts(h + Vector2(-4, 7), 9, 6), light)
-	ci.draw_arc(h + Vector2(-9, 0), 4.5, 0.25, PI - 0.25, 6, Color(0.15, 0.07, 0.03), 1.8, true)
-	ci.draw_arc(h + Vector2(5, 0), 4.5, 0.25, PI - 0.25, 6, Color(0.15, 0.07, 0.03), 1.8, true)
-	ci.draw_colored_polygon(PackedVector2Array([h + Vector2(-6, 6), h + Vector2(-2, 6), h + Vector2(-4, 9)]), Color(0.8, 0.45, 0.45))
-	for k in 3:
-		ci.draw_line(h + Vector2(-12, 8 + k * 2.5), h + Vector2(-26, 6 + k * 4.0), Color(1, 1, 1, 0.45), 1.0, true)
 
 
 static func paint_tree_stand(ci: CanvasItem, base: Vector2) -> void:

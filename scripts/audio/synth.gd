@@ -232,7 +232,54 @@ static func make_sfx() -> Dictionary:
 			var f1 := f0 * br.randf_range(0.7, 1.35)
 			mix_into(bird, sweep(f0, f1, br.randf_range(0.05, 0.11), 0.02, 2), j * 0.11, br.randf_range(0.5, 1.0))
 		d["chirp%d" % k] = to_wav(normalize(bird, 0.25))
+	_make_cat_sfx(d)
 	return d
+
+
+static func _make_cat_sfx(d: Dictionary) -> void:
+	## Marmalade's voice. The purr loops seamlessly: 1.5 s holds a whole
+	## number of 26 Hz pulses and 52 Hz cycles, and one in-and-out breath.
+	var purr := buf(1.5)
+	var pr := RandomNumberGenerator.new()
+	pr.seed = 40
+	var py := 0.0
+	for i in purr.size():
+		var t := float(i) / MIX
+		py += 0.05 * (pr.randf_range(-1.0, 1.0) - py)
+		var pulse := pow(0.5 + 0.5 * sin(TAU * 26.0 * t - PI * 0.5), 3.0)
+		var breath := 0.72 + 0.28 * sin(TAU * t / 1.5)
+		purr[i] = (py * 3.2 + sin(TAU * 52.0 * t) * 0.22) * pulse * breath
+	d["purr"] = to_wav(normalize(purr, 0.7), true)
+	# Mew: a rising-then-falling voiced cry, brightened round 1.5 kHz
+	var mew := buf(0.5)
+	var ph := 0.0
+	for i in mew.size():
+		var t := float(i) / MIX
+		var u := t / 0.5
+		var f := 560.0 + 340.0 * sin(PI * pow(u, 0.7))
+		ph += TAU * f / MIX
+		var s := 0.0
+		for h in range(1, 9):
+			var formant := 1.0 + 1.6 * exp(-pow((f * h - 1500.0) / 600.0, 2.0))
+			s += sin(ph * h) * formant / h
+		mew[i] = s * smoothstep(0.0, 0.05, t) * (1.0 - smoothstep(0.3, 0.5, t))
+	d["mew"] = to_wav(normalize(mew, 0.45))
+	# Mrrp: a short rolled trill, the sound of a cat being interrupted
+	var mrrp := buf(0.24)
+	ph = 0.0
+	for i in mrrp.size():
+		var t := float(i) / MIX
+		var f := lerpf(380.0, 560.0, t / 0.24)
+		ph += TAU * f / MIX
+		var roll := 0.55 + 0.45 * sin(TAU * 28.0 * t)
+		var s := sin(ph) + sin(ph * 2.0) * 0.5 + sin(ph * 3.0) * 0.25
+		mrrp[i] = s * roll * smoothstep(0.0, 0.02, t) * (1.0 - smoothstep(0.14, 0.24, t))
+	d["mrrp"] = to_wav(normalize(mrrp, 0.4))
+	# Hiss and a swipe of the paw
+	d["hiss"] = to_wav(normalize(noise_burst(0.8, 0.04, 0.32, 0.95, 0.72, 41), 0.4))
+	var swipe := noise_burst(0.16, 0.01, 0.05, 0.55, 0.25, 42)
+	mix_into(swipe, sweep(900.0, 300.0, 0.1), 0.0, 0.15)
+	d["swipe"] = to_wav(normalize(swipe, 0.35))
 
 
 # ========================================================= resumable jobs

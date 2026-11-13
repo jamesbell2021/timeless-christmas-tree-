@@ -160,6 +160,11 @@ func sfx(sound: String, pitch: float = 1.0, vol_db: float = 0.0) -> void:
 	p.play()
 
 
+func sfx_stream(sound: String) -> AudioStream:
+	## The raw stream, for things that keep their own player (the cat's purr).
+	return _sfx.get(sound)
+
+
 # ================================================================ ambience
 
 func set_scene_ambience(kind: String) -> void:

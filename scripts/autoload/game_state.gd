@@ -30,6 +30,9 @@ var settings := {
 	"snow": true,
 	"twinkle": true,
 	"idle_fireside": true,
+	"cat_mischief": true,  # Marmalade bats at the low ornaments now and then
+	"trunk_x": -1.0,       # where the player left the trunk (-1 = docked right)
+	"trunk_y": 124.0,
 	"fullscreen": false,
 }
 

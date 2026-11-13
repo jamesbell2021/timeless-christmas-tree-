@@ -210,15 +210,20 @@ func set_trunk_open(on: bool) -> void:
 	trunk_btn.queue_redraw()
 	AudioDirector.sfx("trunk_open" if on else "trunk_close")
 	var tw := create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	var home := TrunkPanel.home_pos()
+	# Slide in and out from whichever side of the room the trunk lives on.
+	var away_x := 1960.0 if home.x + trunk.size.x * 0.5 > 960.0 else -trunk.size.x - 60.0
 	if on:
 		trunk.visible = true
-		tw.tween_property(trunk, "position:x", 1904.0 - trunk.size.x, 0.35)
+		trunk.position = Vector2(away_x, home.y)
+		tw.tween_property(trunk, "position:x", home.x, 0.35)
 		if _tutorial:
 			_tutorial = false
 			_bar.queue_redraw()
 			toast("Drag a decoration onto the tree")
 	else:
-		tw.tween_property(trunk, "position:x", 1960.0, 0.3)
+		away_x = 1960.0 if trunk.position.x + trunk.size.x * 0.5 > 960.0 else -trunk.size.x - 60.0
+		tw.tween_property(trunk, "position:x", away_x, 0.3)
 		tw.tween_callback(func() -> void: trunk.visible = trunk.open)
 
 

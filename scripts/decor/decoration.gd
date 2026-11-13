@@ -33,7 +33,18 @@ func setup(p_def: Dictionary, p_data: Dictionary) -> Decoration:
 	if def.get("draw", "") in SWING_ROOM:
 		_stiffness = 40.0
 		_damping = 2.6
+	if data.get("fallen", false):
+		set_fallen()
 	return self
+
+
+func set_fallen() -> void:
+	## Knocked off the tree by the cat: it lies still on the floor, tipped
+	## over, until someone hangs it back up.
+	_can_swing = false
+	_swing = 0.0
+	_swing_v = 0.0
+	rotation = float(data.get("rot", 0.0))
 
 
 func _ready() -> void:

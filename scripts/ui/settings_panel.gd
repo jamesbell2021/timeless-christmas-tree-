@@ -45,11 +45,13 @@ func _build() -> void:
 	content.add_child(_paint_btn)
 	y += 70
 	_toggle_row("Falling Snow", "snow", x0, y)
-	y += 70
+	y += 62
 	_toggle_row("Ornament Twinkle", "twinkle", x0, y)
-	y += 70
+	y += 62
 	_toggle_row("Fireside When Idle", "idle_fireside", x0, y).tooltip_text = "After five quiet minutes the parlour becomes a screensaver. Click or press a key to come back."
-	y += 70
+	y += 62
+	_toggle_row("Mischievous Cat", "cat_mischief", x0, y).tooltip_text = "Now and then Marmalade wakes up and bats at the lowest ornaments. Turn off for a tidier tree."
+	y += 62
 	if not OS.has_feature("web_android") and not OS.has_feature("web_ios"):
 		_toggle_row("Full Screen", "fullscreen", x0, y)
 	y += 84

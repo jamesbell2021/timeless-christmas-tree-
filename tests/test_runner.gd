@@ -26,6 +26,8 @@ func _ready() -> void:
 	_test_catalogue()
 	await _test_placement()
 	await _test_decor_manager()
+	await _test_cat()
+	_test_trunk()
 	_test_game_state()
 	_test_carols()
 	_test_synth()
@@ -134,6 +136,88 @@ func _test_decor_manager() -> void:
 	tree.queue_free()
 
 
+func _test_cat() -> void:
+	print("cat")
+	var parlour := Parlour.new(false)
+	add_child(parlour)
+	await get_tree().process_frame
+	var cat := parlour.cat
+	var dm := parlour.decor
+	dm.load_items([])
+	check(cat.state == ParlourCat.S.SLEEP and cat.is_home(), "Marmalade starts asleep by the fire")
+	check(cat.hit_test(ParlourCat.HOME + Vector2(-10, -20)), "you can touch her where she's drawn")
+	check(dm.pointer_blocker.call(ParlourCat.HOME + Vector2(-10, -20)), "decorations under her can't be picked by mistake")
+	check(not cat.start_mischief(), "no mischief on a bare tree")
+	# A few gentle strokes: purring, no fuss
+	cat.stroke()
+	cat.stroke()
+	check(cat.content > 0.3 and cat.state == ParlourCat.S.SLEEP, "a couple of strokes and she purrs")
+	# Keep going without a break: warning, then a hiss
+	for i in 3:
+		cat.stroke()
+	check(cat.state == ParlourCat.S.SIT and cat.annoy >= ParlourCat.WARN_AT, "too much petting: she sits up and warns you")
+	for i in 4:
+		cat.stroke()
+	check(cat.state == ParlourCat.S.HISS, "ignore the warning and she hisses")
+	for i in 40:
+		cat._process(0.1)
+		if cat.state == ParlourCat.S.AWAY:
+			break
+	check(cat.state in [ParlourCat.S.FLEE, ParlourCat.S.AWAY], "...and runs away")
+	check(not cat.hit_test(ParlourCat.HOME + Vector2(-10, -20)), "a cat who's left can't be petted")
+	# Patience comes back on its own
+	cat.visible = true
+	cat.position = ParlourCat.HOME
+	cat._enter_state(ParlourCat.S.SIT)
+	cat.annoy = 0.5
+	for i in 30:
+		cat._process(0.1)
+	check(cat.annoy < 0.3, "annoyance fades with time")
+	# Mischief: a low bauble she can reach, a high one she can't
+	cat._enter_state(ParlourCat.S.SLEEP)
+	dm.load_items([
+		{"id": "bauble_red", "x": 900.0, "y": 760.0, "seed": 1},
+		{"id": "bauble_gold", "x": 960.0, "y": 300.0, "seed": 2},
+		{"id": "candle_white", "x": 1000.0, "y": 780.0, "seed": 3},
+	])
+	var targets := dm.cat_targets(ParlourCat.REACH_TOP)
+	check(targets.size() == 1 and targets[0].data["id"] == "bauble_red", "only low ornaments are targets, never candles")
+	check(cat.start_mischief() and cat.state == ParlourCat.S.ROUSE, "she wakes and eyes up the tree")
+	cat.stroke()
+	check(cat.state == ParlourCat.S.SHOOED, "tapping her on the way shoos her off")
+	# Knocking an ornament off, and putting it back with Undo
+	var bauble: Decoration = targets[0]
+	dm.reset_undo()
+	dm.knock_off(bauble, 1.0, false)
+	var s := dm.serialize()
+	var fallen: Dictionary = s[0]
+	check(fallen.get("fallen", false) and float(fallen["y"]) > 900.0, "a knocked ornament lands on the floor and is saved there")
+	check(not dm.cat_targets(ParlourCat.REACH_TOP).has(bauble), "she won't go after one that's already down")
+	dm.load_items(s)
+	var reloaded: Decoration = null
+	for n in dm._items:
+		if n is Decoration and (n as Decoration).data["id"] == "bauble_red":
+			reloaded = n
+	check(reloaded != null and absf(reloaded.rotation) > 0.3, "a fallen ornament reloads lying on its side")
+	dm.undo()
+	check(not dm.serialize()[0].get("fallen", false), "Undo hangs it back on the tree")
+	parlour.queue_free()
+	await get_tree().process_frame
+
+
+func _test_trunk() -> void:
+	print("trunk")
+	var keep_x = GameState.settings["trunk_x"]
+	GameState.settings["trunk_x"] = -1.0
+	check(TrunkPanel.home_pos() == TrunkPanel.docked_pos(), "the trunk docks on the right by default")
+	GameState.settings["trunk_x"] = 20.0
+	check(is_equal_approx(TrunkPanel.home_pos().x, 20.0), "it remembers being moved to the left")
+	var c := TrunkPanel.clamp_pos(Vector2(5000, -50))
+	check(c.x + TrunkPanel.W <= 1912.0 and c.y >= 86.0, "it can't be dragged off screen")
+	check(TrunkPanel.clamp_pos(Vector2(0, 5000)).y + TrunkPanel.H <= RoomLayout.UI_BAR_TOP + 6.0, "or under the bottom bar")
+	GameState.settings["trunk_x"] = keep_x
+
+
 func _test_game_state() -> void:
 	print("game state")
 	var keep := GameState.arrangements.duplicate(true)
@@ -211,7 +295,16 @@ func _test_synth() -> void:
 	for bus in ["Music", "Ambience", "SFX"]:
 		check(names.has(bus), "%s bus is in default_bus_layout.tres (the web build is silent without it)" % bus)
 	var sfx := Synth.make_sfx()
-	for k in ["click", "glass", "paper", "soft", "wood", "tinsel", "match", "chime", "sleigh", "page", "shutter"]:
+	check(names.has("Master"), "Master bus is defined in the layout")
+	var fx: Array = []
+	if layout:
+		for prop in layout.get_property_list():
+			var pn := str(prop["name"])
+			if pn.begins_with("bus/0/effect/") and pn.ends_with("/effect"):
+				fx.append(layout.get(pn))
+	check(fx.any(func(e: Variant) -> bool: return e is AudioEffectHardLimiter), "Master bus has a limiter (stops clipping when many sounds overlap)")
+	for k in ["click", "glass", "paper", "soft", "wood", "tinsel", "match", "chime", "sleigh", "page", "shutter",
+			"purr", "mew", "mrrp", "hiss", "swipe"]:
 		check(sfx.has(k), "sfx %s exists" % k)
 	var job := Synth.StringJob.new(60, 0.5, "piano")
 	var guard := 0

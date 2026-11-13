@@ -20,6 +20,9 @@ const UNDO_DEPTH := 60
 
 var tree: TreeArt
 var trunk_rect_provider: Callable = func() -> Rect2: return Rect2()
+## Returns true for points something else in the room owns (the cat), so a
+## press there doesn't pick up the decoration underneath.
+var pointer_blocker: Callable = func(_p: Vector2) -> bool: return false
 var candles_lit := false
 var enabled := true
 
@@ -216,6 +219,94 @@ func light_count() -> int:
 	return c
 
 
+func has_hover() -> bool:
+	return _hover != null
+
+
+func is_placed(n: Node2D) -> bool:
+	return is_instance_valid(n) and n in _items and not n.has_meta("falling")
+
+
+# ============================================================ the cat
+
+func cat_targets(top_y: float) -> Array[Decoration]:
+	## Hanging ornaments low enough for a cat to reach. Candles are left
+	## alone (a lit candle on the rug is no joke) and so are garlands.
+	var out: Array[Decoration] = []
+	for n in _items:
+		if not n is Decoration or n.has_meta("falling"):
+			continue
+		var d := n as Decoration
+		if d.def.get("kind", "") == "hang" and not d.def.get("light", false) \
+				and not d.data.get("fallen", false) and d.position.y >= top_y:
+			out.append(d)
+	return out
+
+
+func cat_swat(n: Decoration, dir: float, knock: bool) -> void:
+	## A paw through the boughs: the ornament and its neighbours swing hard,
+	## and sometimes it comes right off.
+	if not is_placed(n):
+		return
+	n.impulse(1.8 * dir)
+	for m in _items:
+		if m != n and m.global_position.distance_to(n.global_position) < 100.0:
+			m.call("impulse", randf_range(0.3, 0.8) * dir)
+	AudioDirector.sfx("rustle", randf_range(0.95, 1.1), -4.0)
+	if knock:
+		knock_off(n, dir)
+
+
+func knock_off(n: Decoration, dir: float, animate: bool = true) -> void:
+	## Sends an ornament tumbling to the floor in front of the tree. It stays
+	## there (and in the save) until the player hangs it back up; Undo also
+	## puts it back.
+	if not is_placed(n):
+		return
+	push_undo()
+	var start := n.position
+	var land := Vector2(clampf(start.x + dir * randf_range(50.0, 150.0), 650.0, 1270.0), randf_range(912.0, 930.0))
+	var rot := randf_range(0.5, 1.4) * (1.0 if randf() < 0.5 else -1.0)
+	n.data["x"] = land.x
+	n.data["y"] = land.y
+	n.data["fallen"] = true
+	n.data["rot"] = rot
+	n.set_fallen()
+	if _hover == n:
+		_hover = null
+		hover_changed.emit("")
+	items_changed.emit()    # saved at once, so leaving mid-tumble is safe
+	if not animate:
+		n.position = land
+		return
+	n.rotation = 0.0
+	n.set_meta("falling", true)
+	var fall := func(u: float) -> void:
+		if not is_instance_valid(n):
+			return
+		# A little pop up off the bough, then down with gravity.
+		var x := lerpf(start.x, land.x, u)
+		var y := lerpf(start.y, land.y, u * u) - sin(u * PI) * 40.0 * (1.0 - u)
+		n.position = Vector2(x, y)
+		n.rotation = rot * u
+	var bounce := func(v: float) -> void:
+		if is_instance_valid(n):
+			n.position = land - Vector2(0, sin(v * PI) * 9.0)
+	var tw := create_tween()
+	tw.tween_method(fall, 0.0, 1.0, 0.62)
+	tw.tween_callback(func() -> void:
+		if is_instance_valid(n):
+			AudioDirector.sfx(str(n.def.get("sound", "soft")), randf_range(0.85, 1.0), -2.0)
+			_puff(land, Color(0.85, 0.8, 0.7))
+	)
+	tw.tween_method(bounce, 0.0, 1.0, 0.18)
+	tw.tween_callback(func() -> void:
+		if is_instance_valid(n):
+			n.position = land
+			n.remove_meta("falling")
+	)
+
+
 # ============================================================ spawning
 
 func _spawn(d: Dictionary, data: Dictionary) -> Node2D:
@@ -282,6 +373,8 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed:
 		var mb := event as InputEventMouseButton
 		var p := get_global_mouse_position()
+		if pointer_blocker.call(p):
+			return
 		if mb.button_index == MOUSE_BUTTON_LEFT:
 			if _try_begin_garland_end(p) or _try_pick(p):
 				get_viewport().set_input_as_handled()
@@ -344,6 +437,8 @@ func _pick(p: Vector2) -> Node2D:
 	var front: Array[Node2D] = []
 	var behind: Array[Node2D] = []
 	for n in _items:
+		if n.has_meta("falling"):
+			continue
 		if n.get_parent() == layer_floor:
 			if n.z_index >= 20:
 				front.append(n)
@@ -359,7 +454,7 @@ func _pick(p: Vector2) -> Node2D:
 		var kids: Array = (layer as Node2D).get_children()
 		for i in range(kids.size() - 1, -1, -1):
 			var n: Node = kids[i]
-			if n in _items and n.call("hit_test", p):
+			if n in _items and not n.has_meta("falling") and n.call("hit_test", p):
 				return n as Node2D
 	behind.sort_custom(func(a: Node2D, b: Node2D) -> bool: return a.position.y > b.position.y)
 	for n in behind:
@@ -509,7 +604,7 @@ func _update_garland_drag(mouse: Vector2) -> void:
 
 
 func _update_hover(mouse: Vector2) -> void:
-	var hit := _pick(mouse)
+	var hit: Node2D = null if pointer_blocker.call(mouse) else _pick(mouse)
 	if hit == null:
 		# Show garland handles when the pointer is near either end.
 		for n in _items:
@@ -526,7 +621,10 @@ func _update_hover(mouse: Vector2) -> void:
 			_hover.set("hovered", true)
 			if _hover is Garland:
 				(_hover as Garland).show_handles = true
-			hover_changed.emit(str((_hover.get("def") as Dictionary).get("name", "")))
+			var label := str((_hover.get("def") as Dictionary).get("name", ""))
+			if _hover is Decoration and (_hover as Decoration).data.get("fallen", false):
+				label += ": hang it back up"
+			hover_changed.emit(label)
 		else:
 			hover_changed.emit("")
 
