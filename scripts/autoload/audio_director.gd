@@ -13,6 +13,7 @@ const PIANO_NOTES := [36, 40, 44, 48, 52, 55, 58, 61, 64, 67, 70, 73, 76, 79, 82
 const HARP_NOTES := [43, 47, 51, 55, 58, 61, 64, 67, 70, 73, 76, 79, 83, 87, 91]
 const VOICES := 28
 const RENDER_BUDGET := 9000
+const RENDER_BUDGET_WEB := 3000   # smaller slices: no long frames to starve the speakers
 
 var _sfx: Dictionary = {}
 var _sfx_players: Array[AudioStreamPlayer] = []
@@ -46,6 +47,7 @@ var music_locked := false
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_make_buses()
+	_lighten_for_web()
 	_sfx = Synth.make_sfx()
 	for i in 12:
 		_sfx_players.append(_player(SFX_BUS))
@@ -58,6 +60,23 @@ func _ready() -> void:
 	_jobs.append([Synth.WindJob.new(9.0), _store_amb.bind("wind")])
 	GameState.settings_changed.connect(_apply_volumes)
 	_apply_volumes()
+
+
+func _lighten_for_web() -> void:
+	## The browser build has no threads, so Godot mixes every sound on the same
+	## thread that draws the room. If a frame runs long the speakers run dry
+	## and the music crackles. In the browser we skip the costly effects: the
+	## two reverbs and the compressor. The Master limiter stays, so loud
+	## moments still can't clip. (The bigger output buffer that also helps is
+	## audio/driver/output_latency.web in project.godot.)
+	if not OS.has_feature("web"):
+		return
+	for bus_name in [MUSIC_BUS, SFX_BUS, "Master"]:
+		var idx := AudioServer.get_bus_index(bus_name)
+		for e in AudioServer.get_bus_effect_count(idx):
+			var fx := AudioServer.get_bus_effect(idx, e)
+			if not fx is AudioEffectHardLimiter:
+				AudioServer.set_bus_effect_enabled(idx, e, false)
 
 
 func _make_buses() -> void:
@@ -243,14 +262,15 @@ func _start_song() -> void:
 
 func _process(delta: float) -> void:
 	# Progressive rendering of instruments and ambience
-	var budget := RENDER_BUDGET
+	var full := RENDER_BUDGET_WEB if OS.has_feature("web") else RENDER_BUDGET
+	var budget := full
 	while budget > 0 and not _jobs.is_empty():
 		var job: Synth.SynthJob = _jobs[0][0]
 		if job.step(budget):
 			var cb: Callable = _jobs[0][1]
 			_jobs.pop_front()
 			cb.call(job.result)
-		budget -= RENDER_BUDGET / 2
+		budget -= full / 2
 	# Spring birdsong
 	if _amb_kind == "spring" or _amb_kind == "summer":
 		_bird_timer -= delta
