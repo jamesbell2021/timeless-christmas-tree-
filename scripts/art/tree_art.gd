@@ -124,6 +124,10 @@ func generate() -> void:
 	queue_redraw()
 
 
+static func trunk_half_width(tree_width: float) -> float:
+	return maxf(4.0, tree_width * 0.035)
+
+
 func _branch_point(b: Dictionary, s: float) -> Vector2:
 	if b.get("leader", false):
 		return b["start"] + Vector2(0, -b["len"] * s)
@@ -220,13 +224,21 @@ func _grow_branch(b: Dictionary, batch: Dictionary, snow_batch: Dictionary, rng:
 
 
 func _draw() -> void:
+	var tw := trunk_half_width(width)
+	var trunk_col: Color = _pal.get("trunk", Color(0.2, 0.1, 0.05))
 	if show_trunk:
-		var tw := maxf(4.0, width * 0.035)
 		var trunk := PackedVector2Array([Vector2(-tw, 0), Vector2(tw, 0), Vector2(tw * 0.5, -height * 0.6), Vector2(-tw * 0.5, -height * 0.6)])
-		draw_colored_polygon(trunk, _pal.get("trunk", Color(0.2, 0.1, 0.05)))
+		draw_colored_polygon(trunk, trunk_col)
 		draw_line(Vector2(-tw * 0.4, 0), Vector2(-tw * 0.2, -height * 0.5), Color(1, 0.9, 0.7, 0.12), 2.0)
 	if _shadow.size() >= 3:
 		draw_colored_polygon(_shadow, _pal.get("shadow", Color(0, 0.05, 0.02, 0.9)))
+	if show_trunk:
+		# The foot of the trunk again, over the inner shadow, so it shows in
+		# the gap under the lowest boughs (higher up the shadow keeps it hidden).
+		var h := height * 0.13
+		var k := 1.0 - 0.5 * (h / (height * 0.6))
+		draw_colored_polygon(PackedVector2Array([Vector2(-tw, 0), Vector2(tw, 0), Vector2(tw * k, -h), Vector2(-tw * k, -h)]), trunk_col)
+		draw_line(Vector2(-tw * 0.4, 0), Vector2(-tw * 0.37, -h), Color(1, 0.9, 0.7, 0.12), 2.0)
 	for b in _batches:
 		var p: PackedVector2Array = b["points"]
 		if p.size() >= 2:

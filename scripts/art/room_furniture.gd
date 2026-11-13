@@ -176,6 +176,18 @@ static func paint_tree_stand(ci: CanvasItem, base: Vector2) -> void:
 		ci.draw_arc(Vector2(x, top_y + 34), 6, 0, TAU, 10, Color(UIKit.GOLD_LIGHT, 0.5), 1.2, true)
 	ci.draw_colored_polygon(DecorArt.ellipse_pts(Vector2(base.x, top_y), 76, 11), UIKit.GOLD)
 	ci.draw_colored_polygon(DecorArt.ellipse_pts(Vector2(base.x, top_y), 66, 8), Color(0.12, 0.08, 0.05))
+	# Earth and moss packed round the trunk, and the trunk going down into it
+	# (the urn is drawn over the tree, so the trunk is repeated here).
+	ci.draw_colored_polygon(DecorArt.ellipse_pts(Vector2(base.x, top_y + 1), 62, 6.5), Color(0.2, 0.13, 0.07))
+	for k in 9:
+		var mx := base.x - 50.0 + k * 12.5
+		ci.draw_circle(Vector2(mx, top_y + 1.0 + sin(k * 1.7) * 2.0), 3.2, Color(0.22, 0.3, 0.12, 0.8))
+	var tw := TreeArt.trunk_half_width(L.TREE_WIDTH)
+	var trunk_col := Color(0.22, 0.12, 0.06)
+	ci.draw_colored_polygon(PackedVector2Array([Vector2(base.x - tw, top_y + 3), Vector2(base.x + tw, top_y + 3),
+			Vector2(base.x + tw * 0.97, top_y - 10), Vector2(base.x - tw * 0.97, top_y - 10)]), trunk_col)
+	ci.draw_colored_polygon(DecorArt.ellipse_pts(Vector2(base.x, top_y + 3), tw + 5, 3.5), Color(0.16, 0.1, 0.05))
+	ci.draw_line(Vector2(base.x - tw * 0.4, top_y + 2), Vector2(base.x - tw * 0.38, top_y - 10), Color(1, 0.9, 0.7, 0.12), 2.0)
 	# Lion-ring handles
 	for side in [-1.0, 1.0]:
 		ci.draw_arc(Vector2(base.x + side * 66, top_y + 26), 9, 0, TAU, 14, UIKit.GOLD_LIGHT, 2.5, true)

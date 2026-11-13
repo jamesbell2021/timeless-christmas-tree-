@@ -68,9 +68,7 @@ var _stroke_acc := 0.0
 var _last_stroke := -10.0
 var _press_strokes := 0
 var _last_mouse := Vector2.ZERO
-var _hover_text := ""
 var _fx: Array = []                      # [kind, pos, vel, life, max_life]
-var _zzz := 1.5
 var _squash := 0.0
 var _purr: AudioStreamPlayer
 var _rng := RandomNumberGenerator.new()
@@ -243,17 +241,12 @@ func _process(delta: float) -> void:
 	_pose_update(delta)
 	_fx_update(delta)
 	_purr_update()
-	_hover_update()
 	queue_redraw()
 
 
 func _behave(delta: float) -> void:
 	match state:
 		S.SLEEP:
-			_zzz -= delta
-			if _zzz <= 0.0 and not _petting and content < 0.05:
-				_zzz = 2.6
-				_fx_add("z", _head_pos() + Vector2(-6, -8))
 			if _can_mischief():
 				_mischief -= delta
 				if _mischief <= 0.0:
@@ -384,24 +377,6 @@ func _input_update() -> void:
 			_stroke_acc = 0.0
 			stroke()
 	_last_mouse = m
-
-
-func _hover_update() -> void:
-	var text := ""
-	if _interactive() and hit_test(get_global_mouse_position()):
-		match state:
-			S.ROUSE, S.WALK, S.STALK:
-				text = ("Shoo! (tap %s)" % NAME) if _target else ""
-			S.HISS, S.FLEE:
-				text = ""
-			_:
-				text = ("%s has had quite enough..." % NAME) if annoy >= WARN_AT else ("Stroke %s" % NAME)
-	if text == _hover_text:
-		return
-	_hover_text = text
-	# Don't wipe the name of a decoration the pointer has just moved onto.
-	if text != "" or not parlour.decor.has_hover():
-		parlour.ui.show_hover(text)
 
 
 func _purr_update() -> void:
@@ -766,7 +741,7 @@ func _draw_head(h: Vector2, tilt: float, eyes: String) -> void:
 # ========================================================= little effects
 
 func _fx_add(kind: String, at: Vector2) -> void:
-	var life := 1.6 if kind == "z" else 1.1
+	var life := 1.1
 	_fx.append([kind, at + Vector2(_rng.randf_range(-6, 6), 0), Vector2(_rng.randf_range(-12, 12), -42), life, life])
 
 
@@ -778,8 +753,6 @@ func _fx_update(delta: float) -> void:
 			_fx.remove_at(i)
 			continue
 		f[1] += f[2] * delta
-		if f[0] == "z":
-			f[1] = f[1] + Vector2(sin(_t * 3.0 + i) * 0.4, 0.0)
 
 
 func _draw_fx() -> void:
@@ -796,10 +769,6 @@ func _draw_fx() -> void:
 				for k in 4:
 					var dir := Vector2.from_angle(PI * 0.25 + k * PI * 0.5)
 					draw_line(p + dir * 3.0 * grow, p + dir * 9.0 * grow, col, 3.0, true)
-			"z":
-				var font := UIKit.font("title_italic")
-				draw_string_outline(font, p, "z", HORIZONTAL_ALIGNMENT_LEFT, -1, int(16 * grow), 4, Color(0.1, 0.05, 0.02, a * 0.6))
-				draw_string(font, p, "z", HORIZONTAL_ALIGNMENT_LEFT, -1, int(16 * grow), Color(1, 0.95, 0.85, a * 0.85))
 
 
 func _heart(c: Vector2, s: float, col: Color) -> void:
